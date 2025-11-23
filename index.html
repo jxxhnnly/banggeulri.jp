@@ -123,14 +123,14 @@
                 document.body.removeChild(textArea);
             };
 
-            // チェックリストデータ (最新: 需要調査削除、お札2枚、セットお札削除、ポーチ3個追加)
+            // チェックリストデータ
             const checklistData = [
                 { id: 1, text: "養子縁組証明書 (1体につき3枚)" },
                 { id: 2, text: "ステッカー (1体につき5枚)" },
                 { id: 3, text: "[先入金] デコシール (1体につき1枚)" },
-                { id: 4, text: "カットステッカー (1注文につき6枚)" }, // 需要調査表記削除
-                { id: 5, text: "オリジナルチケット (1注文につき1枚)" },
-                { id: 6, text: "お札 (1注文につき2枚)" }, // 4枚→2枚に変更
+                { id: 4, text: "カットステッカー (1注文につき6枚)" }, 
+                { id: 5, text: "オリジナルチケット (1注文につき2枚 / 全2種各1枚)" }, // 2枚修正
+                { id: 6, text: "お札 (1注文につき2枚)" },
                 { id: 8, text: "[セット] どんぐりジャケット" }, 
                 { id: 9, text: "[特典] ポーチ (個数確認)", type: 'pouch' },
             ];
@@ -158,7 +158,6 @@
 
                 if (willCheck) {
                     playSuccessSound();
-                    // 需要調査(survey)のトースト削除
                     if (item.type === 'pouch') {
                         setToastMessage("バングリをお迎えしてくれてありがとう！🙇‍♀️");
                         setShowToast(true);
@@ -274,7 +273,7 @@
                                     <span className="absolute top-3 right-3 text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">1注文につき</span>
                                     <h3 className="font-bold text-gray-800 mb-2 flex items-center">📦 1注文あたり (複数購入でも1セット)</h3>
                                     <ul className="text-sm text-gray-600 space-y-1.5 ml-1">
-                                        <li className="flex items-center"><Ticket size={14} className="mr-2 text-blue-400" /> オリジナルチケット <strong className="ml-1 text-gray-900">1枚</strong></li>
+                                        <li className="flex items-center"><Ticket size={14} className="mr-2 text-blue-400" /> オリジナルチケット <strong className="ml-1 text-gray-900">2枚 (全2種各1枚)</strong></li>
                                         {/* お札2枚に変更 */}
                                         <li className="flex items-center"><span className="mr-2 text-blue-400 text-xs">📄</span> お札 <strong className="ml-1 text-gray-900">2枚</strong></li>
                                         {/* 需要調査タグ削除 */}
