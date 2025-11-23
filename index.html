@@ -123,20 +123,19 @@
                 document.body.removeChild(textArea);
             };
 
-            // チェックリストデータ
+            // チェックリストデータ (最新: 需要調査削除、お札2枚、セットお札削除、ポーチ3個追加)
             const checklistData = [
                 { id: 1, text: "養子縁組証明書 (1体につき3枚)" },
                 { id: 2, text: "ステッカー (1体につき5枚)" },
-                { id: 3, text: "[先入金] デコシール (1体につき1枚)" }, // 띠부띠부씰 부활
-                { id: 4, text: "[需要調査] カットステッカー (6枚)", type: 'survey', highlight: true }, 
+                { id: 3, text: "[先入金] デコシール (1体につき1枚)" },
+                { id: 4, text: "カットステッカー (1注文につき6枚)" }, // 需要調査表記削除
                 { id: 5, text: "オリジナルチケット (1注文につき1枚)" },
-                { id: 6, text: "お札 (1注文につき4枚)" },
-                { id: 7, text: "[セット] お札 (枠なし・1注文につき1枚)" },
-                { id: 8, text: "[セット] どんぐりジャケット" }, // 別送の表記削除済み
-                { id: 9, text: "[特典] ポーチ (1~3体:1個 / 4~6体:2個)", type: 'pouch' },
+                { id: 6, text: "お札 (1注文につき2枚)" }, // 4枚→2枚に変更
+                { id: 8, text: "[セット] どんぐりジャケット" }, 
+                { id: 9, text: "[特典] ポーチ (個数確認)", type: 'pouch' },
             ];
 
-            // FAQデータ (日本語化 & 交換不可ポリシー反映)
+            // FAQデータ
             const faqData = [
                 {
                     id: 2,
@@ -159,11 +158,8 @@
 
                 if (willCheck) {
                     playSuccessSound();
-                    if (item.type === 'survey') {
-                        setToastMessage("需要調査に参加してくれてありがとう！🧡");
-                        setShowToast(true);
-                        setTimeout(() => setShowToast(false), 3000);
-                    } else if (item.type === 'pouch') {
+                    // 需要調査(survey)のトースト削除
+                    if (item.type === 'pouch') {
                         setToastMessage("バングリをお迎えしてくれてありがとう！🙇‍♀️");
                         setShowToast(true);
                         setTimeout(() => setShowToast(false), 3000);
@@ -219,7 +215,7 @@
                             </div>
                         </section>
 
-                        {/* 💖 バングリ ビューティーケア (不良交換ガイドの代わり) */}
+                        {/* 💖 バングリ ビューティーケア */}
                         <section className="px-6 py-4">
                             <div className="bg-pink-50 border-2 border-pink-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
                                 <div className="absolute -right-6 -top-6 bg-pink-100 w-24 h-24 rounded-full opacity-50"></div>
@@ -262,6 +258,7 @@
                                 構成品のご案内
                             </h2>
                             <div className="space-y-3">
+                                {/* ぬいぐるみ基準 */}
                                 <div className="bg-white p-4 rounded-xl border border-orange-200 shadow-sm relative">
                                     <span className="absolute top-3 right-3 text-[10px] font-bold bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">1体につき</span>
                                     <h3 className="font-bold text-gray-800 mb-2 flex items-center">🧸 ぬいぐるみ1つ購入時</h3>
@@ -271,26 +268,34 @@
                                         <li className="flex items-start"><span className="mr-2 text-orange-400">•</span> [先入金] デコシール <strong className="ml-1 text-gray-900">1枚 (ランダム)</strong></li>
                                     </ul>
                                 </div>
+
+                                {/* 注文基準 (修正済み) */}
                                 <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative">
                                     <span className="absolute top-3 right-3 text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">1注文につき</span>
                                     <h3 className="font-bold text-gray-800 mb-2 flex items-center">📦 1注文あたり (複数購入でも1セット)</h3>
                                     <ul className="text-sm text-gray-600 space-y-1.5 ml-1">
                                         <li className="flex items-center"><Ticket size={14} className="mr-2 text-blue-400" /> オリジナルチケット <strong className="ml-1 text-gray-900">1枚</strong></li>
-                                        <li className="flex items-center"><span className="mr-2 text-blue-400 text-xs">📄</span> お札 <strong className="ml-1 text-gray-900">4枚</strong></li>
+                                        {/* お札2枚に変更 */}
+                                        <li className="flex items-center"><span className="mr-2 text-blue-400 text-xs">📄</span> お札 <strong className="ml-1 text-gray-900">2枚</strong></li>
+                                        {/* 需要調査タグ削除 */}
                                         <li className="flex items-center bg-green-50 p-1.5 rounded mt-1">
-                                            <span className="mr-2 text-green-500 text-xs font-bold">[需要調査]</span> カットステッカー <strong className="ml-1 text-green-800">6枚</strong>
+                                            <span className="mr-2 text-green-500 text-xs font-bold">全員特典</span> カットステッカー <strong className="ml-1 text-green-800">6枚</strong>
                                         </li>
+                                        {/* セット購入者のお札追加削除 */}
                                         <li className="flex items-start bg-gray-50 p-1.5 rounded text-xs text-gray-500 mt-1">
                                             <span className="mr-1 text-purple-500 font-bold">※ セット購入者のみ:</span> 
-                                            お札(枠なし) 1枚追加 + ジャケット(別送)
+                                            ジャケット
                                         </li>
                                     </ul>
                                 </div>
+
+                                {/* ポーチ (9体対応) */}
                                 <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm">
                                     <span className="text-xs font-bold bg-yellow-400 text-white px-2 py-1 rounded mb-2 inline-block shadow-sm">🎁 プレゼント (ポーチ)</span>
                                     <div className="text-sm text-gray-800 space-y-1 mt-1">
                                         <p>• 1~3体 購入: <strong className="text-orange-600">ポーチ 1個</strong></p>
                                         <p>• 4~6体 購入: <strong className="text-orange-600">ポーチ 2個</strong></p>
+                                        <p>• 7~9体 購入: <strong className="text-orange-600">ポーチ 3個</strong></p>
                                     </div>
                                     <p className="text-[10px] text-orange-600/80 bg-white/60 p-2 rounded mt-2 leading-tight">
                                         * 網素材のため印刷が剥がれやすいです。（総代のポーチもすでに…😇）おまけのプレゼントですので、優しく扱ってください！
@@ -357,7 +362,7 @@
                             </div>
                         </section>
 
-                        {/* レビューイベント (景品説明削除) */}
+                        {/* レビューイベント */}
                         <section className="p-6 pt-2">
                             <div className="bg-gray-900 text-white rounded-2xl p-6 text-center relative overflow-hidden shadow-xl">
                                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500 to-pink-500 opacity-20 rounded-full blur-3xl"></div>
@@ -366,12 +371,11 @@
                                 <div className="bg-white/10 rounded-xl p-4 mb-5 text-sm leading-relaxed text-gray-200 backdrop-blur-md border border-white/10">
                                     <p className="mb-2">"皆様の写真を見るのが一番の楽しみです！"</p>
                                     <p className="font-light opacity-90">
-                                        カフェ、旅行先、家の前のお散歩コース…<br/>
+                                        カフェ、旅行先、コンサート会場…<br/>
                                         これからバングリと色々な場所へ行って、<br/>
                                         幸せな瞬間を写真に残してください🧡
                                     </p>
                                 </div>
-                                {/* 景品に関する説明を削除 */}
                                 <div className="mb-5">
                                     <div className="text-xs font-mono text-blue-200 mb-2 break-all text-center opacity-80">#뱅그리랑_와글와글 #뱅그리가왔그리</div>
                                     <button onClick={handleCopyHashtags} className={`w-full flex items-center justify-center py-2 rounded-lg text-sm font-bold transition-all duration-200 shadow-md ${isCopied ? 'bg-green-500 text-white scale-95' : 'bg-white text-gray-900 hover:bg-gray-100'}`}>
