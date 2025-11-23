@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バングリお迎えガイド</title>
+    
+    <!-- 1. Tailwind CSS (スタイル) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 3. Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* スクロールバー隠し & アニメーション */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
+            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0,0,0.2,1); }
+        }
+        .animate-bounce { animation: bounce 1s infinite; }
+        
+        /* 日本語フォント最適化 */
+        body {
+            font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // [Icon Components] インラインSVGで安定性を確保
+        const IconBase = ({ children, size = 24, className = "", ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
+        );
+
+        const Smile = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></IconBase>;
+        const Twitter = (props) => <IconBase {...props}><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></IconBase>;
+        const Check = (props) => <IconBase {...props}><polyline points="20 6 9 17 4 12"/></IconBase>;
+        const Camera = (props) => <IconBase {...props}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></IconBase>;
+        const Gift = (props) => <IconBase {...props}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></IconBase>;
+        const MessageCircle = (props) => <IconBase {...props}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></IconBase>;
+        const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9"/></IconBase>;
+        const ChevronUp = (props) => <IconBase {...props}><polyline points="18 15 12 9 6 15"/></IconBase>;
+        const AlertTriangle = (props) => <IconBase {...props}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></IconBase>;
+        const HelpCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></IconBase>;
+        const Ban = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></IconBase>;
+        const ShoppingBag = (props) => <IconBase {...props}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></IconBase>;
+        const Ticket = (props) => <IconBase {...props}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></IconBase>;
+        const Copy = (props) => <IconBase {...props}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></IconBase>;
+        const Heart = (props) => <IconBase {...props}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></IconBase>;
+        const Info = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></IconBase>;
+        const Volume2 = (props) => <IconBase {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></IconBase>;
+        const Sparkles = (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 5H5"/><path d="M5 19v-4"/><path d="M9 17H5"/><path d="M19 3v4"/><path d="M15 5h4"/><path d="M19 19v-4"/><path d="M15 17h4"/></IconBase>;
+
+        const BanggeulriGuide = () => {
+            const [checkedItems, setCheckedItems] = useState({});
+            const [openFaqId, setOpenFaqId] = useState(null);
+            const [isCopied, setIsCopied] = useState(false);
+            const [showToast, setShowToast] = useState(false);
+            const [toastMessage, setToastMessage] = useState(""); 
+
+            // FAQ トグル
+            const toggleFaq = (id) => {
+                setOpenFaqId(prev => (prev === id ? null : id));
+            };
+
+            // 🔊 効果音再生
+            const playSuccessSound = () => {
+                try {
+                    // @ts-ignore
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    
+                    const ctx = new AudioContext();
+                    const oscillator = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(523.25, ctx.currentTime); 
+                    oscillator.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.1); 
+
+                    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+
+                    oscillator.start();
+                    oscillator.stop(ctx.currentTime + 0.4);
+                } catch (e) {
+                    console.error("Audio play failed", e);
+                }
+            };
+
+            // ハッシュタグコピー
+            const handleCopyHashtags = () => {
+                const tags = "#뱅그리랑_와글와글 #뱅그리가왔그리";
+                const textArea = document.createElement("textarea");
+                textArea.value = tags;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                } catch (err) {
+                    console.error('복사失敗', err);
+                }
+                document.body.removeChild(textArea);
+            };
+
+            // チェックリストデータ
+            const checklistData = [
+                { id: 1, text: "養子縁組証明書 (1体につき3枚)" },
+                { id: 2, text: "ステッカー (1体につき5枚)" },
+                { id: 3, text: "[先入金] デコシール (1体につき1枚)" }, // 띠부띠부씰 부활
+                { id: 4, text: "[需要調査] カットステッカー (6枚)", type: 'survey', highlight: true }, 
+                { id: 5, text: "オリジナルチケット (1注文につき1枚)" },
+                { id: 6, text: "お札 (1注文につき4枚)" },
+                { id: 7, text: "[セット] お札 (枠なし・1注文につき1枚)" },
+                { id: 8, text: "[セット] どんぐりジャケット" }, // 別送の表記削除済み
+                { id: 9, text: "[特典] ポーチ (1~3体:1個 / 4~6体:2個)", type: 'pouch' },
+            ];
+
+            // FAQデータ (日本語化 & 交換不可ポリシー反映)
+            const faqData = [
+                {
+                    id: 2,
+                    icon: <Ban size={18} className="text-red-500" />,
+                    q: "洗濯しても大丈夫ですか？",
+                    a: "おすすめしません！❌ ぬいぐるみの変形の原因になります。汚れがついた場合は、濡れたタオルで優しく拭き取ってください。"
+                },
+                {
+                    id: 3,
+                    icon: <ShoppingBag size={18} className="text-purple-500" />,
+                    q: "不良による交換・返品はできますか？",
+                    a: "大変申し訳ございませんが、海外配送の特性上、交換および返品の対応はいたしかねます。工場と総代による二重検品を行っておりますので、ご理解いただけますと幸いです。🙇‍♀️"
+                }
+            ];
+
+            // トグルハンドラー
+            const toggleCheck = (item) => {
+                const willCheck = !checkedItems[item.id];
+                setCheckedItems(prev => ({ ...prev, [item.id]: willCheck }));
+
+                if (willCheck) {
+                    playSuccessSound();
+                    if (item.type === 'survey') {
+                        setToastMessage("需要調査に参加してくれてありがとう！🧡");
+                        setShowToast(true);
+                        setTimeout(() => setShowToast(false), 3000);
+                    } else if (item.type === 'pouch') {
+                        setToastMessage("バングリをお迎えしてくれてありがとう！🙇‍♀️");
+                        setShowToast(true);
+                        setTimeout(() => setShowToast(false), 3000);
+                    }
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-[#FFF8F0] text-gray-800 font-sans selection:bg-orange-200 pb-20 relative">
+                    
+                    {/* トーストメッセージ */}
+                    <div className={`fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[90] transition-all duration-500 pointer-events-none w-full max-w-sm text-center ${showToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                        <div className="inline-flex items-center bg-gray-900/95 text-white px-6 py-3 rounded-full shadow-2xl backdrop-blur-md border border-white/20">
+                            <Heart className="text-pink-500 mr-2 fill-current animate-bounce" size={18} />
+                            <span className="font-bold text-sm whitespace-nowrap">{toastMessage}</span>
+                        </div>
+                    </div>
+
+                    {/* ヘッダー */}
+                    <header className="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-orange-100 shadow-sm">
+                        <div className="max-w-lg mx-auto px-4 py-3 flex justify-between items-center">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center text-white shadow-md">
+                                    <Smile size={20} />
+                                </div>
+                                <span className="font-bold text-lg text-orange-900 tracking-tight">バングリ到着！</span>
+                            </div>
+                            <a href="https://x.com/banggeulri819?s=21" target="_blank" rel="noreferrer" className="bg-black text-white p-2 rounded-full hover:bg-gray-800 transition-colors">
+                                <Twitter size={16} />
+                            </a>
+                        </div>
+                    </header>
+
+                    <main className="max-w-lg mx-auto">
+                        {/* 挨拶セクション */}
+                        <section className="p-6 bg-white mb-2">
+                            <div className="text-center mb-6">
+                                <h1 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">
+                                    こんにちは！<br/>僕は <span className="text-orange-500">バングリ</span> だよ 🍊
+                                </h1>
+                                <p className="text-sm text-gray-500 font-medium">総代 ジウンより</p>
+                            </div>
+                            <div className="bg-orange-50 p-5 rounded-xl border border-orange-100 text-sm text-gray-700 leading-relaxed shadow-inner">
+                                <p className="mb-3">
+                                    こんにちは、バングリ総代のジウンです。<br/>
+                                    長い間お待ちいただき、本当にありがとうございます。
+                                </p>
+                                <p>
+                                    バングリが世に出ることができたのは<br/>
+                                    完全に皆様のおかげです。<br/>
+                                    今日もバングリと一緒に幸せな一日を！ :)
+                                </p>
+                            </div>
+                        </section>
+
+                        {/* 💖 バングリ ビューティーケア (不良交換ガイドの代わり) */}
+                        <section className="px-6 py-4">
+                            <div className="bg-pink-50 border-2 border-pink-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                                <div className="absolute -right-6 -top-6 bg-pink-100 w-24 h-24 rounded-full opacity-50"></div>
+                                <h2 className="flex items-center text-pink-600 font-bold text-lg mb-3 relative z-10">
+                                    <Sparkles className="mr-2" size={22} />
+                                    バングリを可愛くする方法
+                                </h2>
+                                
+                                <div className="space-y-4 text-sm text-gray-700 relative z-10">
+                                    <p className="text-gray-800 font-medium">
+                                        遠い旅をしてきたので、顔が少し押されているかもしれません。でも大丈夫！以下の方法でもっと可愛くなります。
+                                    </p>
+
+                                    <div className="space-y-3">
+                                        <div className="bg-white/80 p-3 rounded-xl border border-pink-100">
+                                            <strong className="block text-pink-500 mb-1">💆‍♀️ マッサージ（経絡）</strong>
+                                            <p className="text-xs leading-relaxed">
+                                                顔の綿を手で優しく揉んで、形を整えてあげてください。左右のバランスを整えると、本来の可愛い顔に戻ります！
+                                            </p>
+                                        </div>
+                                        <div className="bg-white/80 p-3 rounded-xl border border-pink-100">
+                                            <strong className="block text-pink-500 mb-1">✨ チーク</strong>
+                                            <p className="text-xs leading-relaxed">
+                                                ほっぺに少しチークを塗ってあげると、さらに愛らしくなりますよ！ぜひ試してみてください。
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <p className="text-xs text-gray-500 text-center mt-2">
+                                        ※ 海外配送の特性上、交換・返品は難しい点をご了承ください。
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 構成品ガイド */}
+                        <section className="px-6 py-4 bg-white my-4">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                <Gift className="mr-2 text-orange-500" size={20} />
+                                構成品のご案内
+                            </h2>
+                            <div className="space-y-3">
+                                <div className="bg-white p-4 rounded-xl border border-orange-200 shadow-sm relative">
+                                    <span className="absolute top-3 right-3 text-[10px] font-bold bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">1体につき</span>
+                                    <h3 className="font-bold text-gray-800 mb-2 flex items-center">🧸 ぬいぐるみ1つ購入時</h3>
+                                    <ul className="text-sm text-gray-600 space-y-1.5 ml-1">
+                                        <li className="flex items-start"><span className="mr-2 text-orange-400">•</span> 養子縁組証明書 <strong className="ml-1 text-gray-900">3枚</strong></li>
+                                        <li className="flex items-start"><span className="mr-2 text-orange-400">•</span> ステッカー <strong className="ml-1 text-gray-900">5枚</strong></li>
+                                        <li className="flex items-start"><span className="mr-2 text-orange-400">•</span> [先入金] デコシール <strong className="ml-1 text-gray-900">1枚 (ランダム)</strong></li>
+                                    </ul>
+                                </div>
+                                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative">
+                                    <span className="absolute top-3 right-3 text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">1注文につき</span>
+                                    <h3 className="font-bold text-gray-800 mb-2 flex items-center">📦 1注文あたり (複数購入でも1セット)</h3>
+                                    <ul className="text-sm text-gray-600 space-y-1.5 ml-1">
+                                        <li className="flex items-center"><Ticket size={14} className="mr-2 text-blue-400" /> オリジナルチケット <strong className="ml-1 text-gray-900">1枚</strong></li>
+                                        <li className="flex items-center"><span className="mr-2 text-blue-400 text-xs">📄</span> お札 <strong className="ml-1 text-gray-900">4枚</strong></li>
+                                        <li className="flex items-center bg-green-50 p-1.5 rounded mt-1">
+                                            <span className="mr-2 text-green-500 text-xs font-bold">[需要調査]</span> カットステッカー <strong className="ml-1 text-green-800">6枚</strong>
+                                        </li>
+                                        <li className="flex items-start bg-gray-50 p-1.5 rounded text-xs text-gray-500 mt-1">
+                                            <span className="mr-1 text-purple-500 font-bold">※ セット購入者のみ:</span> 
+                                            お札(枠なし) 1枚追加 + ジャケット(別送)
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm">
+                                    <span className="text-xs font-bold bg-yellow-400 text-white px-2 py-1 rounded mb-2 inline-block shadow-sm">🎁 プレゼント (ポーチ)</span>
+                                    <div className="text-sm text-gray-800 space-y-1 mt-1">
+                                        <p>• 1~3体 購入: <strong className="text-orange-600">ポーチ 1個</strong></p>
+                                        <p>• 4~6体 購入: <strong className="text-orange-600">ポーチ 2個</strong></p>
+                                    </div>
+                                    <p className="text-[10px] text-orange-600/80 bg-white/60 p-2 rounded mt-2 leading-tight">
+                                        * 網素材のため印刷が剥がれやすいです。（総代のポーチもすでに…😇）おまけのプレゼントですので、優しく扱ってください！
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* チェックリスト */}
+                        <section className="p-6 bg-white my-4 border-t border-gray-100">
+                            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <Check className="mr-2 text-green-500" size={20} />
+                                    構成品チェックリスト
+                                </div>
+                                <div className="flex items-center text-xs font-normal text-gray-400">
+                                    <Volume2 size={12} className="mr-1" />
+                                    音量をONにしてね！
+                                </div>
+                            </h2>
+                            <div className="grid grid-cols-1 gap-2">
+                                {checklistData.map((item) => (
+                                    <div key={item.id} onClick={() => toggleCheck(item)}
+                                         className={`flex items-center p-3 rounded-lg border transition-all cursor-pointer select-none
+                                         ${checkedItems[item.id] ? 'bg-green-50 border-green-200 text-gray-400' : 'bg-white border-gray-200 text-gray-700 hover:border-orange-300'}`}>
+                                        <div className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center flex-shrink-0 transition-colors
+                                            ${checkedItems[item.id] ? 'bg-green-500 border-green-500' : 'bg-white border-gray-300'}`}>
+                                            {checkedItems[item.id] && <Check size={12} className="text-white" />}
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className={`text-sm ${checkedItems[item.id] ? 'line-through decoration-gray-300' : ''}`}>{item.text}</span>
+                                            {item.highlight && !checkedItems[item.id] && (
+                                                <span className="block text-[10px] text-red-500 font-medium mt-0.5">⚠️ 要確認</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* FAQ */}
+                        <section className="px-6 py-6 bg-[#fafafa]">
+                            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                <HelpCircle className="mr-2 text-blue-500" size={20} />
+                                よくある質問 (FAQ)
+                            </h2>
+                            <div className="space-y-3 mb-6">
+                                {faqData.map((faq) => (
+                                    <div key={faq.id} className="border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm">
+                                        <button onClick={() => toggleFaq(faq.id)} className="w-full flex justify-between items-start p-4 text-left bg-white hover:bg-gray-50 transition-colors">
+                                            <div className="flex items-start pr-4">
+                                                <span className="mt-0.5 mr-2 flex-shrink-0">{faq.icon}</span>
+                                                <span className="font-bold text-sm text-gray-800 leading-snug">{faq.q}</span>
+                                            </div>
+                                            {openFaqId === faq.id ? <ChevronUp size={18} className="text-gray-400 flex-shrink-0" /> : <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />}
+                                        </button>
+                                        {openFaqId === faq.id && (
+                                            <div className="p-4 pt-0 bg-gray-50 text-sm text-gray-600 border-t border-gray-100 leading-relaxed">
+                                                <div className="mt-3 font-medium whitespace-pre-wrap">{faq.a}</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* レビューイベント (景品説明削除) */}
+                        <section className="p-6 pt-2">
+                            <div className="bg-gray-900 text-white rounded-2xl p-6 text-center relative overflow-hidden shadow-xl">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500 to-pink-500 opacity-20 rounded-full blur-3xl"></div>
+                                <Heart size={28} className="mx-auto mb-3 text-pink-400 animate-pulse" />
+                                <h2 className="text-lg font-bold mb-2">📸 バングリとの思い出</h2>
+                                <div className="bg-white/10 rounded-xl p-4 mb-5 text-sm leading-relaxed text-gray-200 backdrop-blur-md border border-white/10">
+                                    <p className="mb-2">"皆様の写真を見るのが一番の楽しみです！"</p>
+                                    <p className="font-light opacity-90">
+                                        カフェ、旅行先、家の前のお散歩コース…<br/>
+                                        これからバングリと色々な場所へ行って、<br/>
+                                        幸せな瞬間を写真に残してください🧡
+                                    </p>
+                                </div>
+                                {/* 景品に関する説明を削除 */}
+                                <div className="mb-5">
+                                    <div className="text-xs font-mono text-blue-200 mb-2 break-all text-center opacity-80">#뱅그리랑_와글와글 #뱅그리가왔그리</div>
+                                    <button onClick={handleCopyHashtags} className={`w-full flex items-center justify-center py-2 rounded-lg text-sm font-bold transition-all duration-200 shadow-md ${isCopied ? 'bg-green-500 text-white scale-95' : 'bg-white text-gray-900 hover:bg-gray-100'}`}>
+                                        {isCopied ? <><Check size={16} className="mr-2" />コピー完了！</> : <><Copy size={16} className="mr-2" />タグをコピーする</>}
+                                    </button>
+                                </div>
+                                <a href="https://x.com/banggeulri819?s=21" target="_blank" rel="noreferrer" className="inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg transform hover:scale-105">
+                                    <Twitter size={16} className="mr-2" /> Twitterへ行く
+                                </a>
+                            </div>
+                        </section>
+
+                        {/* フッター */}
+                        <footer className="text-center p-8 pb-12 text-gray-300 text-xs bg-white border-t border-gray-100 mt-6">
+                            <p className="mb-2">お問い合わせはTwitterのDMまでお願いします。</p>
+                            <a href="https://x.com/banggeulri819?s=21" className="flex justify-center items-center text-gray-400 hover:text-orange-500 transition-colors mb-4">
+                                <MessageCircle size={12} className="mr-1" /> @banggeulri819
+                            </a>
+                            <p className="font-mono opacity-50 text-[10px]">Managed by Jieun</p>
+                        </footer>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<BanggeulriGuide />);
+    </script>
+</body>
+</html>
